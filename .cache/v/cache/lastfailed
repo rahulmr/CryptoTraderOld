@@ -1,0 +1,6 @@
+{
+  "CryptoTrader/BackTest/tests/test_backtester.py": true,
+  "CryptoTrader/TechnicalAnalysis/tests/test_technicalanalysis.py": true,
+  "CryptoTrader/data_utils/tests/test_functions.py": true,
+  "CryptoTrader/tests/test_poloniexSaver.py": true
+}

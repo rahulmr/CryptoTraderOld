@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from CryptoScraper import BtcFinex
+from CryptoScraper import cryptoDownloader
 import math
 
 class BasicFunctions():
