@@ -95,9 +95,6 @@ class getAllData:
         startFrame = int(time.mktime(datetime.datetime.strptime(self.customTimeframe['start'], "%Y-%m-%d").timetuple()))
         endFrame = int(time.mktime(datetime.datetime.strptime(self.customTimeframe['end'], "%Y-%m-%d").timetuple()))
 
-        print(startFrame)
-        print(endFrame)
-
         for key in coinDf:
             coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] >= startFrame]
             coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] <= endFrame]
