@@ -5,6 +5,7 @@ import pandas as pd
 import json
 import os.path
 import time
+import datetime
 import CryptoScraper
 
 class getAllData:
@@ -13,19 +14,21 @@ class getAllData:
     Returns all data in a dictionary
     '''
     
-    def __init__(self, cacheOnly, coins=['BTC', 'DASH', 'DOGE', 'ETH', 'LTC', 'STR', 'XMR', 'XRP'], how='intersect'):
+    def __init__(self, cacheOnly, coins=['BTC', 'DASH', 'DOGE', 'ETH', 'LTC', 'STR', 'XMR', 'XRP'], how='intersect', customTimeframe = {'start': '1990-01-01', 'end': '2050-01-01'}):
         '''
         cacheOnly: true or false.
         Returns data from cache only
         
-        how: 'intersect' and 'union'. Union appends zero.
+        how: 'intersect' and 'union'. Union appends zero. Note that in union smallestEnding is used.
         
         timerange: dictionary containing start and end time. 
         Format: %Y-%m-%d
         
         '''
+        self.how = how
         self.cache = cacheOnly
         self.coins = coins
+        self.customTimeframe = customTimeframe
         
     def data(self):
         coinDf = {}
@@ -40,6 +43,65 @@ class getAllData:
                 
             coinDf[coin] = pd.read_csv(os.path.dirname(CryptoScraper.__file__) + '\cache\{}.csv'.format(coin))
             
+        smallestStart = 9999999999
+        largestStart = 0
+        smallestEnd = 9999999999
+        largestEnd = 0
+        
+        if (self.how == 'intersect' or self.how == 'union'):
+
+            for key in coinDf:
+                startingDate = coinDf[key].iloc[0]['Date']
+                endingDate = coinDf[key].iloc[-1]['Date']
+                
+                if (startingDate < smallestStart):
+                    smallestStart = startingDate
+                    
+                if (startingDate > largestStart):
+                    largestStart = startingDate
+                    
+                if (endingDate < smallestEnd):
+                    smallestEnd = endingDate
+                    
+                if (endingDate > largestEnd):
+                    largestEnd = endingDate
+        
+        if (self.how == 'intersect'):
+
+            for key in coinDf:
+                coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] >= largestStart]
+                coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] <= smallestEnd]
+
+        else:
+
+            # print(smallestStart)
+            # print(largestStart)
+            # print(smallestEnd)
+            # print(largestEnd)
+
+            for key in coinDf:
+                dates = pd.DataFrame([x for x in range(int(smallestStart), int(smallestEnd), 3600)]) #in union smallestEnding is used
+                dates.columns = ['Date']
+                
+                coinDf[coin].set_index('Date', inplace=True)
+                dates.set_index('Date', inplace=True)
+                
+                full_data = pd.concat([coinDf[coin], dates], axis=1).fillna(value=0)
+                full_data = full_data.reset_index()
+
+                coinDf[coin] = full_data
+        
+        #now custom timeframe
+        startFrame = int(time.mktime(datetime.datetime.strptime(self.customTimeframe['start'], "%Y-%m-%d").timetuple()))
+        endFrame = int(time.mktime(datetime.datetime.strptime(self.customTimeframe['end'], "%Y-%m-%d").timetuple()))
+
+        print(startFrame)
+        print(endFrame)
+
+        for key in coinDf:
+            coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] >= startFrame]
+            coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] <= endFrame]
+
         return coinDf
 
 class cryptoDownloader:
