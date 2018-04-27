@@ -34,6 +34,12 @@ class addData():
                 print('Adding {} data for {}'.format(type, key))
                 self.dfs[key] = self.add_wikipedia(df, self.coinfull[key])
 
+        #convert to zeros
+        for key, df in self.dfs.items():
+            df.loc[df['Volume'] <= 0.0001] = 0
+            self.dfs[key] = df
+            self.dfs[key] = self.dfs[key].fillna(method='ffill')
+
         return self.dfs
 
     def add_reddit(self):
