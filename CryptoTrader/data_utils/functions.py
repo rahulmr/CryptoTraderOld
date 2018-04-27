@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from CryptoScraper import cryptoDownloader
+from sklearn.utils import shuffle
 import math
 
 class BasicFunctions():
@@ -58,7 +58,7 @@ class BasicFunctions():
 
 class PriceFunctions():
     def percentage_to_classification(self, x):
-        #returns a number y [-4,4] depending on how much it went up/down
+        #returns 1 or 0 depending on whether the price went up or down 
         y = 0
         
         if (x >= 0):
@@ -139,11 +139,11 @@ class PriceFunctions():
 
         return dfs
 
-    def get_pandas(self, coin='BTC', targetdays=24, absolute=True, data='cached'):
+    def add_yColumns(self, dfs, targetdays=24, absolute=True):
         '''
         Parameters:
-        data: (int) (optional)
-        'cached' returns cached data. 'download' adds data to cache or redownloads if there is no cache.
+        dfs: (dictionary)
+        Dictionary containing coins and their price values
         
         targetdays: (int) (optional)
         specify the target number of timeframe from which percentage change is to be calculated. 24 for daily change in hourly. 1 for daily change in daily 
@@ -156,36 +156,25 @@ class PriceFunctions():
         df: 
         pandas dataframe of data from bitfinex
         '''
-        
         targetdays = -1 * targetdays
-        
-        if (coin == 'BTC'):
-            finex = BtcFinex()
 
-            if (data == 'download'):
-                finex.loadData()
+        for key,df in dfs.items():
+            df.set_index('Date', inplace=True)
 
-            df = finex.getCleanData()
-            df['Date'] = df['Time']
-            df.drop('Time', axis=1, inplace=True)
+            df['Percentage Change'] = (1 - df['Close']/df.shift(targetdays)['Close'])
+            df['Classification'] = df['Percentage Change'].apply(PriceFunctions().percentage_to_classification)
             
-        elif (coin == 'ETH' or coin == 'DASH' or coin == 'DOGE' or coin == 'LTC' or coin == 'STR' or coin == 'XMR' or coin == 'XRP'):
-            df = pd.read_csv('CryptoScraper/cache/{}.csv'.format(coin))
-        
-        df.set_index('Date', inplace=True)
+            df['Classification'] = df['Classification'].astype(np.float32)
+            df['Percentage Change'] = df['Percentage Change'].astype(np.float32)
+            
+            if (absolute == True):
+                df['Percentage Change'] = df['Percentage Change'].abs()
+            
+            df = df[:targetdays]
 
-        df['Percentage Change'] = (1 - df['Close']/df.shift(targetdays)['Close'])
-        df['Classification'] = df['Percentage Change'].apply(PriceFunctions().percentage_to_classification)
+            dfs[key] = df
         
-        df['Classification'] = df['Classification'].astype(np.float32)
-        df['Percentage Change'] = df['Percentage Change'].astype(np.float32)
-        
-        if (absolute == True):
-            df['Percentage Change'] = df['Percentage Change'].abs()
-        
-        df = df[:targetdays]
-        
-        return df
+        return dfs
     
     def split_traintest(self, df, ratio=0.83):
         '''
