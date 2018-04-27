@@ -1,1 +1,1 @@
-from CryptoScraper.cryptoDownloader import cryptoDownloader
+from CryptoScraper.cryptoDownloader import cryptoDownloader, getAllData

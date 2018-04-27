@@ -7,6 +7,41 @@ import os.path
 import time
 import CryptoScraper
 
+class getAllData:
+    
+    '''
+    Returns all data in a dictionary
+    '''
+    
+    def __init__(self, cacheOnly, coins=['BTC', 'DASH', 'DOGE', 'ETH', 'LTC', 'STR', 'XMR', 'XRP'], how='intersect'):
+        '''
+        cacheOnly: true or false.
+        Returns data from cache only
+        
+        how: 'intersect' and 'union'. Union appends zero.
+        
+        timerange: dictionary containing start and end time. 
+        Format: %Y-%m-%d
+        
+        '''
+        self.cache = cacheOnly
+        self.coins = coins
+        
+    def data(self):
+        coinDf = {}
+        
+        for coin in self.coins:
+            print('Getting {} data'.format(coin))
+            
+            
+            if (self.cache == False):
+                crypto = cryptoDownloader(coin)
+                crypto.download()
+                
+            coinDf[coin] = pd.read_csv(os.path.dirname(CryptoScraper.__file__) + '\cache\{}.csv'.format(coin))
+            
+        return coinDf
+
 class cryptoDownloader:
 
     '''
@@ -151,6 +186,7 @@ class cryptoDownloader:
         retDf['Date'] = retDf['Date'].astype(int)
         
         return retDf
+         
     
     def cleanData(self, df):
         '''
