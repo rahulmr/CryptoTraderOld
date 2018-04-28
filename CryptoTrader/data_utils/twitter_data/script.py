@@ -23,7 +23,7 @@ def scrape(start_date, end_date, keyword="Bitcoin"):
         for tweet in list_of_tweets:
             df = df.append({'ID': tweet.id, 'Tweet': tweet.text, 'Time': tweet.timestamp, 'User': tweet.user, 'Likes': tweet.likes, 'Replies': tweet.replies, 'Retweet': tweet.retweets}, ignore_index=True)
 
-        df.to_csv("{}.csv".format(dt.strftime('%Y-%m-%d'), index=False))
+        df.to_csv("{}\extracted\{}.csv".format(keyword.lower(), dt.strftime('%Y-%m-%d'), index=False))
 
 for d in range(2013, 2018):
     scrape(date(d,1,1), date(d, 12, 31))

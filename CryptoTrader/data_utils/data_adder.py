@@ -18,9 +18,9 @@ class addData():
         '''
         type (string):
         google, twitter, reddit, wikipedia
-        '''
 
-        #Should not add to 0 columns. fix it. And possibly ffill
+        Using bfill for old data. Like wikipedia is avilable from 2015. Before that
+        '''
 
         if (type == 'blockchain'):
             print('Adding {} data for {}'.format(type, 'BTC'))
@@ -39,6 +39,8 @@ class addData():
             df.loc[df['Volume'] <= 0.0001] = 0
             self.dfs[key] = df
             self.dfs[key] = self.dfs[key].fillna(method='ffill')
+            self.dfs[key] = self.dfs[key].fillna(method='bfill') 
+            
 
         return self.dfs
 
@@ -155,6 +157,6 @@ class addData():
         newDf = newDf.set_index('Date')
         
         newTrends = newTrends[~newTrends.index.duplicated(keep='last')] #replace duplicates
-        test = newDf.join(newTrends).ffill()
+        test = newDf.join(newTrends).fillna(method='ffill')
         
         return test #can add unit test if time

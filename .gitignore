@@ -2,4 +2,5 @@
 *.npy
 *.db
 CryptoTrader/data_utils/twitter_data/**/*.csv
-!CryptoTrader/data_utils/twitter_data/**/twitterFeatures.csv
+CryptoTrader/data_utils/twitter_data/**/extracted/*
+!CryptoTrader/data_utils/twitter_data/**/features.csv
