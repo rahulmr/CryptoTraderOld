@@ -139,7 +139,7 @@ class PriceFunctions():
 
         return dfs
 
-    def add_yColumns(self, dfs, targetdays=24, absolute=True):
+    def add_yColumns(self, dfs, targetdays=24, absolute=True, dateindex = True):
         '''
         Parameters:
         dfs: (dictionary)
@@ -150,6 +150,9 @@ class PriceFunctions():
         
         negative: (boolean) (optional)
         If set to true, absolute value of percentage change is returned
+
+        dateindex: (boolean) (optional)
+        If true set date as index
         
         Returns:
         
@@ -159,7 +162,9 @@ class PriceFunctions():
         targetdays = -1 * targetdays
 
         for key,df in dfs.items():
-            df.set_index('Date', inplace=True)
+
+            if (dateindex == True):
+                df.set_index('Date', inplace=True)
 
             df['Percentage Change'] = (1 - df['Close']/df.shift(targetdays)['Close'])
             df['Classification'] = df['Percentage Change'].apply(PriceFunctions().percentage_to_classification)

@@ -25,14 +25,25 @@ class addData():
         if (type == 'blockchain'):
             print('Adding {} data for {}'.format(type, 'BTC'))
             self.dfs['BTC'] = self.add_blockchain(self.dfs['BTC'])
+        elif (type == 'twitter'):
+            print('\nAdding {} data for {}'.format(type, 'BTC'))
+            self.dfs['BTC'] = self.add_twitter(self.dfs['BTC'])
             
         for key,df in self.dfs.items():
+            
             if (type == 'google'):
                 print('Adding {} data for {}'.format(type, key))
                 self.dfs[key] = self.add_trends(df, self.coinfull[key])
-            elif (type == 'wikipedia'):
+            elif (type == 'wikipedia'):               
                 print('Adding {} data for {}'.format(type, key))
                 self.dfs[key] = self.add_wikipedia(df, self.coinfull[key])
+            elif (type == 'ta'):
+                print('\nAdding {} data for {}'.format(type, key))
+                self.dfs[key] = self.add_technicalanalysis(df, key)
+            elif (type == 'reddit'):
+                print('\nAdding {} data for {}'.format(type, key))
+                self.dfs[key] = self.add_reddit(df, self.coinfull[key])
+
 
         #convert to zeros
         for key, df in self.dfs.items():
@@ -44,11 +55,41 @@ class addData():
 
         return self.dfs
 
-    def add_reddit(self):
-        pass
+    def add_technicalanalysis(self, df, name, indicators = ['obv', 'macd', 'bollingerband', 'volumechange', 'rsi']):
+        ta = TechnicalAnalysis(df, coin=name)
+        ta.merge_time(cache=True)
+
+        for indicator in indicators:
+            print("Adding {} indicator".format(indicator))
+            ta.perform(indicator)
+
+        df_withta = ta.get_dic()['24hour'] #replace it 
+
+        return df_withta
+
+
+    def add_reddit(self, df, coinfull):
+        redditDf = pd.read_csv('data_utils\\reddit_data\\readable\\{}Features.csv'.format(coinfull.capitalize()))
+        redditDf.columns = 'reddit' + redditDf.columns
+
+        redditDf['Date'] = redditDf['redditDate']
+        redditDf = redditDf.drop('redditDate', axis=1)
+
+        regFeatures = self.addIrregularFeatures(df, redditDf)
+        df = df.join(regFeatures)
+        return df
     
-    def add_twitter(self):
-        pass
+    def add_twitter(self, df):
+        twitterDf = pd.read_csv('data_utils\\twitter_data\\bitcoin\\twitterFeatures.csv')
+        twitterDf.columns = 'twitter' + twitterDf.columns
+        
+        twitterDf['Date'] = twitterDf['twitterDate']
+        twitterDf = twitterDf.drop('twitterDate', axis=1)
+        
+        regFeatures = self.addIrregularFeatures(df, twitterDf)
+        
+        df = df.join(regFeatures)
+        return df
 
     def add_blockchain(self, df):
         '''
@@ -144,7 +185,6 @@ class addData():
         
         closestDf = pd.DataFrame(columns=['Date'])
 
-        
         #replace with closest date
         for i in range(irregular_data['Date'].shape[0]):
             closestDf = closestDf.append({'Date': newDf.iloc[(newDf['Date'] - irregular_data['Date'].iloc[i]).abs().argsort()[0]]['Date']}, ignore_index=True)

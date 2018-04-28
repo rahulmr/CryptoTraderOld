@@ -4,7 +4,7 @@ import os.path
 
 class TechnicalAnalysis:
     
-    def merge_time(self, cache=False):
+    def merge_time(self, cache=False, save_cache=False):
         '''
         Merges the pandas dataframes by given Date. 
         
@@ -26,8 +26,9 @@ class TechnicalAnalysis:
             fullname = 'TechnicalAnalysis\cache\{}'.format(fname)
 
             if (cache == True and os.path.isfile(fullname)):
-                print('Read from cache')
-                dic[currname] = pd.read_csv(fullname,index_col='Date')        
+                print('Read merged data from cache')
+                dic[currname] = pd.read_csv(fullname,index_col='Date') 
+
             else:
                 for j in range(0, self.df.shape[0], i):
                     tempdf = self.df.iloc[j:j+i]
@@ -37,12 +38,10 @@ class TechnicalAnalysis:
                 dic[currname].index = dic[currname].index.map(int) #convert to int because getting floats in scientific notation
                 dic[currname]['Classification'] = dic[currname]['Classification'].astype(int)
 
-                if (cache == True):
+                if (cache == True or save_cache == True):
                     dic[currname].to_csv(fullname)
                     print('Wrote {} to cache'.format(fname))
-            
-            
-            
+
         self.dic = dic
         
     def set_dic(self, dic):
@@ -76,12 +75,23 @@ class TechnicalAnalysis:
         Returns values of dictionary placed in the initial dataframe. All dictonaries are merged into a single dataframe with many columns
         '''
         for key,df in self.dic.items():
-            columns = df[df.columns.symmetric_difference(self.initial_cols)].columns
+
+            diff = df.columns.symmetric_difference(self.initial_cols).drop('Date')
+            columns = df[diff].columns
             new_name = key + columns
             
             required_df = df[columns]
             required_df.columns = new_name
             
+            try:
+                self.df = self.df.set_index('Date')
+            except:
+                pass
+
+            try:
+                required_df = required_df.set_index('Date')
+            except:
+                pass
             
             self.df = pd.concat([self.df, required_df], axis=1)
             self.df.fillna(method='ffill', inplace=True)

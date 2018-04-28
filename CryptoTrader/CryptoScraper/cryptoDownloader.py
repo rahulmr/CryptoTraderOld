@@ -69,8 +69,8 @@ class getAllData:
         if (self.how == 'intersect'):
 
             for key in coinDf:
-                coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] >= largestStart]
-                coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] <= smallestEnd]
+                coinDf[key] = coinDf[key][coinDf[key]['Date'] >= largestStart]
+                coinDf[key] = coinDf[key][coinDf[key]['Date'] <= smallestEnd]
 
         else:
 
@@ -83,21 +83,23 @@ class getAllData:
                 dates = pd.DataFrame([x for x in range(int(smallestStart), int(smallestEnd), 3600)]) #in union smallestEnding is used
                 dates.columns = ['Date']
                 
-                coinDf[coin].set_index('Date', inplace=True)
+                coinDf[key].set_index('Date', inplace=True)
                 dates.set_index('Date', inplace=True)
                 
-                full_data = pd.concat([coinDf[coin], dates], axis=1).fillna(value=0)
+                full_data = pd.concat([coinDf[key], dates], axis=1).fillna(value=0)
                 full_data = full_data.reset_index()
 
-                coinDf[coin] = full_data
+                coinDf[key] = full_data
         
         #now custom timeframe
         startFrame = int(time.mktime(datetime.datetime.strptime(self.customTimeframe['start'], "%Y-%m-%d").timetuple()))
         endFrame = int(time.mktime(datetime.datetime.strptime(self.customTimeframe['end'], "%Y-%m-%d").timetuple()))
 
         for key in coinDf:
-            coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] >= startFrame]
-            coinDf[coin] = coinDf[coin][coinDf[coin]['Date'] <= endFrame]
+            coinDf[key] = coinDf[key][coinDf[key]['Date'] >= startFrame]
+            coinDf[key] = coinDf[key][coinDf[key]['Date'] <= endFrame]
+
+            coinDf[key] = coinDf[key].reset_index(drop=True)
 
         return coinDf
 
